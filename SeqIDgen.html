@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数据集序列编码生成器 (最终版)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 900px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        select, button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            text-align: center;
+        }
+        #result-code {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            word-break: break-all;
+        }
+        .error-message {
+            color: #e74c3c;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>数据集序列编码生成器</h1>
+
+    <div class="section">
+        <h2>场景规格 (SceneSpec) - 长序列</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>属性</th>
+                    <th>物体 1</th>
+                    <th>物体 2</th>
+                    <th>物体 3</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>位置 (Pos)</b></td>
+                    <td><select id="pos1"></select></td>
+                    <td><select id="pos2"></select></td>
+                    <td><select id="pos3"></select></td>
+                </tr>
+                <tr>
+                    <td><b>门类型 (DoorType)</b></td>
+                    <td><select id="door1"></select></td>
+                    <td><select id="door2"></select></td>
+                    <td><select id="door3"></select></td>
+                </tr>
+                <tr>
+                    <td><b>开门方向 (OpenDir)</b></td>
+                    <td><select id="dir1"></select></td>
+                    <td><select id="dir2"></select></td>
+                    <td><select id="dir3"></select></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>交互规格 (InteractionSpec)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>交互模式 (Mode)</th>
+                    <th>SMPL 高度 (Height)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><select id="mode"></select></td>
+                    <td><select id="height"></select></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <button id="generateBtn">生成编码</button>
+
+    <div class="error-message" id="error-message"></div>
+
+    <div class="result-container">
+        <strong>生成的序列编码:</strong>
+        <p id="result-code">L_00hmf_11nmu_22bhl_M0H0</p>
+    </div>
+</div>
+
+<script>
+    // --- 数据定义 (严格遵循您的指南) ---
+    const positions = Array.from({length: 3}, (_, z) => Array.from({length: 3}, (_, x) => `${x}${z}`)).flat();
+    const doorTypes = {
+        'hm': '河马口 (hm)', 'nm': '普通口 (nm)', 'bh': '长条口-横 (bh)',
+        'bv': '长条口-竖 (bv)', 'dl': '双开左 (dl)', 'dr': '双开右 (dr)'
+    };
+    const openDirs = {'f': '前 (f)', 'u': '上 (u)', 'l': '左 (l)', 'r': '右 (r)'};
+    const modes = {'M0': '左-右-左 (M0)', 'M1': '右-左-右 (M1)', 'M2': '双手+单手 (M2)'};
+    const heights = {'H0': '地面高度 (H0)', 'H2': '胸部高度 (H2)'};
+
+    // --- 页面初始化 ---
+    function populateSelect(selectId, options, defaultKey) {
+        const select = document.getElementById(selectId);
+        for (const key in options) {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = options[key];
+            select.appendChild(option);
+        }
+        if (defaultKey) {
+            select.value = defaultKey;
+        }
+    }
+
+    function initialize() {
+        // 填充物体选择器
+        for (let i = 1; i <= 3; i++) {
+            populateSelect(`pos${i}`, Object.fromEntries(positions.map(p => [p, p])));
+            populateSelect(`door${i}`, doorTypes);
+            populateSelect(`dir${i}`, openDirs);
+        }
+        // 设置默认值以展示一个有效组合
+        document.getElementById('pos1').value = '00';
+        document.getElementById('pos2').value = '11';
+        document.getElementById('pos3').value = '22';
+        document.getElementById('door1').value = 'hm';
+        document.getElementById('door2').value = 'nm';
+        document.getElementById('door3').value = 'bh';
+        document.getElementById('dir1').value = 'f';
+        document.getElementById('dir2').value = 'u';
+        document.getElementById('dir3').value = 'l';
+
+        // 填充交互选择器
+        populateSelect('mode', modes, 'M0');
+        populateSelect('height', heights, 'H0');
+    }
+
+    // --- 核心逻辑 ---
+    const generateBtn = document.getElementById('generateBtn');
+    const resultCode = document.getElementById('result-code');
+    const errorMessage = document.getElementById('error-message');
+
+    generateBtn.addEventListener('click', () => {
+        errorMessage.textContent = ''; // 清空错误信息
+
+        // 1. 获取所有输入值
+        const objects = [];
+        for (let i = 1; i <= 3; i++) {
+            objects.push({
+                id: i,
+                pos: document.getElementById(`pos${i}`).value,
+                door: document.getElementById(`door${i}`).value,
+                dir: document.getElementById(`dir${i}`).value,
+            });
+        }
+        const mode = document.getElementById('mode').value;
+        const height = document.getElementById('height').value;
+
+        // 2. 执行校验
+        // 2.1 校验位置唯一性
+        const posSet = new Set(objects.map(o => o.pos));
+        if (posSet.size !== 3) {
+            errorMessage.textContent = '错误: 三个物体的位置必须是唯一的。';
+            return;
+        }
+
+        // 2.2 校验门类型唯一性
+        const doorSet = new Set(objects.map(o => o.door));
+        if (doorSet.size !== 3) {
+            errorMessage.textContent = '错误: 三个物体的门类型必须是唯一的。';
+            return;
+        }
+
+        // 2.3 校验开门方向的有效性
+        const posMap = new Map(objects.map(o => [o.pos, o.id]));
+        for (const obj of objects) {
+            const x = parseInt(obj.pos[0]);
+            const z = parseInt(obj.pos[1]);
+            let targetPos = '';
+            let directionText = '';
+
+            if (obj.dir === 'u') {
+                targetPos = `${x}${z + 1}`;
+                directionText = '上';
+            } else if (obj.dir === 'l') {
+                targetPos = `${x - 1}${z}`;
+                directionText = '左';
+            } else if (obj.dir === 'r') {
+                targetPos = `${x + 1}${z}`;
+                directionText = '右';
+            }
+
+            if (targetPos && posMap.has(targetPos)) {
+                errorMessage.textContent = `错误: 物体 ${obj.id} (${obj.pos}) 不能向${directionText}打开，因为该位置被物体 ${posMap.get(targetPos)} 占用。`;
+                return;
+            }
+        }
+
+        // 3. 生成编码 (严格按照最终指南)
+        const seqType = 'L';
+        const sceneSpec = objects.map(o => `${o.pos}${o.door}${o.dir}`).join('_');
+        const interactionSpec = `${mode}${height}`;
+        const finalCode = `${seqType}_${sceneSpec}_${interactionSpec}`;
+
+        resultCode.textContent = finalCode;
+    });
+
+    // --- 页面加载时初始化 ---
+    initialize();
+
+</script>
+</body>
+</html>
