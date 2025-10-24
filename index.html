@@ -21,12 +21,34 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             width: 1200px;
         }
+        .title-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
         h1 {
             text-align: center;
             color: #2c3e50;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 10px;
-            margin-top: 0;
+            margin: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .lang-switcher {
+            font-size: 14px;
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        .lang-switcher span {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .lang-switcher span.active {
+            background-color: #3498db;
+            color: white;
         }
         .main-content {
             display: flex;
@@ -59,7 +81,7 @@
             background-color: #f8f9fa;
             font-weight: 600;
         }
-        select, button {
+        select, button, input[type="text"] {
             width: 100%;
             padding: 10px;
             border-radius: 4px;
@@ -71,19 +93,25 @@
             color: #ccc;
             background-color: #f9f9f9;
         }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
+        .parser-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
         }
-        button:hover {
-            background-color: #2980b9;
+        .parser-container input {
+            flex-grow: 1;
+        }
+        .parser-container button {
+            flex-shrink: 0;
+            width: auto;
+            padding: 10px 20px;
+            background-color: #27ae60;
+        }
+        .parser-container button:hover {
+            background-color: #229954;
         }
         .result-container {
-            margin-top: 40px;
+            margin-top: 20px;
             padding: 10px 15px;
             background-color: #ecf0f1;
             border: 1px solid #bdc3c7;
@@ -107,7 +135,8 @@
             font-weight: bold;
             text-align: center;
             margin-top: 20px;
-            height: 20px;
+            min-height: 20px;
+            line-height: 1.4;
         }
         #copyBtn {
             width: auto;
@@ -118,6 +147,7 @@
             cursor: pointer;
             border-radius: 4px;
             color: white;
+            transition: background-color 0.3s;
         }
         #copyBtn:hover {
             background-color: #95a5a6;
@@ -158,35 +188,40 @@
 <body>
 
 <div class="container">
-    <h1>数据集序列编码生成器</h1>
+    <div class="title-container">
+        <h1 data-lang-key="title">数据集序列编码生成器</h1>
+        <div class="lang-switcher">
+            <span id="lang-zh" class="active">中</span> / <span id="lang-en">En</span>
+        </div>
+    </div>
     <div class="main-content">
         <div class="config-panel">
             <div class="section">
-                <h2>场景规格 (SceneSpec)</h2>
+                <h2 data-lang-key="sceneSpecTitle">场景规格 (SceneSpec)</h2>
                 <table>
                     <thead>
                         <tr>
-                            <th>属性</th>
-                            <th>物体 1</th>
-                            <th>物体 2</th>
-                            <th>物体 3</th>
+                            <th data-lang-key="table_attr">属性</th>
+                            <th data-lang-key="table_obj1">物体 1</th>
+                            <th data-lang-key="table_obj2">物体 2</th>
+                            <th data-lang-key="table_obj3">物体 3</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td><b>门类型 (DoorType)</b></td>
+                            <td data-lang-key="attr_door"><b>门类型 (DoorType)</b></td>
                             <td><select id="door1"></select></td>
                             <td><select id="door2"></select></td>
                             <td><select id="door3"></select></td>
                         </tr>
                         <tr>
-                            <td><b>位置 (Pos)</b></td>
+                            <td data-lang-key="attr_pos"><b>位置 (Pos)</b></td>
                             <td><select id="pos1"></select></td>
                             <td><select id="pos2"></select></td>
                             <td><select id="pos3"></select></td>
                         </tr>
                         <tr>
-                            <td><b>开门方向 (OpenDir)</b></td>
+                            <td data-lang-key="attr_dir"><b>开门方向 (OpenDir)</b></td>
                             <td><select id="dir1"></select></td>
                             <td><select id="dir2"></select></td>
                             <td><select id="dir3"></select></td>
@@ -196,12 +231,12 @@
             </div>
 
             <div class="section">
-                <h2>交互规格 (InteractionSpec)</h2>
+                <h2 data-lang-key="interactionSpecTitle">交互规格 (InteractionSpec)</h2>
                 <table>
                     <thead>
                         <tr>
-                            <th>交互模式 (Mode)</th>
-                            <th>SMPL 高度 (Height)</th>
+                            <th data-lang-key="attr_mode">交互模式 (Mode)</th>
+                            <th data-lang-key="attr_height">SMPL 高度 (Height)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -213,17 +248,22 @@
                 </table>
             </div>
 
+            <div class="parser-container">
+                <input type="text" id="parse-input" data-lang-placeholder="parser_placeholder">
+                <button id="parse-btn" data-lang-key="parserTitle">解析并应用</button>
+            </div>
+
             <div class="error-message" id="error-message"></div>
             <div class="result-container">
                 <span id="result-code">L_hm00f_nm20f_bh01u_M0H0</span>
-                <button id="copyBtn" title="复制编码">
+                <button id="copyBtn" data-lang-title="copy_title">
                     <svg id="copy-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     <svg id="check-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 </button>
             </div>
         </div>
         <div class="vis-panel">
-            <h2>场景实时预览</h2>
+            <h2 data-lang-key="visTitle">场景实时预览</h2>
             <div id="vis-container">
                 <canvas id="scene-canvas"></canvas>
             </div>
@@ -235,26 +275,134 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+    // --- 语言包 ---
+    const LANG_PACK = {
+        zh: {
+            title: "数据集序列编码生成器",
+            sceneSpecTitle: "场景规格 (SceneSpec)",
+            interactionSpecTitle: "交互规格 (InteractionSpec)",
+            parserTitle: "解析并应用",
+            visTitle: "场景实时预览",
+            table_attr: "属性",
+            table_obj1: "物体 1",
+            table_obj2: "物体 2",
+            table_obj3: "物体 3",
+            attr_door: "门类型 (DoorType)",
+            attr_pos: "位置 (Pos)",
+            attr_dir: "开门方向 (OpenDir)",
+            attr_mode: "交互模式 (Mode)",
+            attr_height: "SMPL 高度 (Height)",
+            parser_placeholder: "在此粘贴序列编码...",
+            copy_title: "复制编码",
+            door_options: { 'hm': '河马口 (hm)', 'nm': '普通口 (nm)', 'bh': '长条口-横 (bh)', 'bv': '长条口-竖 (bv)', 'dl': '双开左 (dl)', 'dr': '双开右 (dr)', 'dlb': '双开全 (dlb)' },
+            dir_options: { 'f': '前 (f)', 'u': '上 (u)', 'l': '左 (l)', 'r': '右 (r)' },
+            mode_options: { 'M0': '左-右-左 (M0)', 'M1': '右-左-右 (M1)', 'M2': '双手+单手 (M2)' },
+            height_options: { 'H0': '地面高度 (H0)', 'H2': '胸部高度 (H2)' },
+            errors: {
+                ERR_DOOR_UNIQUE: "错误: 门类型必须是唯一的。",
+                ERR_BOUNDS: (ctx) => `错误: 物体 ${ctx.id} 的 ${ctx.door} 类型超出边界。`,
+                ERR_COLLISION: "错误: 物体位置存在重叠/冲突。",
+                ERR_DLB_MODE: "错误: 选择了 dlb 类型，交互模式必须是 M2。",
+                ERR_PARSE_FORMAT: "错误: 无效的编码格式。",
+                ERR_PARSE_BLOCK: (ctx) => `错误: 物体描述 "${ctx.block}" 格式无效。`,
+                ERR_PARSE_COMPONENT: (ctx) => `错误: 物体描述 "${ctx.block}" 包含未知组件。`,
+                ERR_PARSE_INTERACT_FORMAT: (ctx) => `错误: 交互描述 "${ctx.block}" 格式无效。`,
+                ERR_PARSE_INTERACT_COMPONENT: (ctx) => `错误: 交互描述 "${ctx.block}" 包含未知组件。`
+            }
+        },
+        en: {
+            title: "Dataset Sequence Code Generator",
+            sceneSpecTitle: "Scene Specification (SceneSpec)",
+            interactionSpecTitle: "Interaction Specification (InteractionSpec)",
+            parserTitle: "Parse & Apply",
+            visTitle: "Scene Real-time Preview",
+            table_attr: "Attribute",
+            table_obj1: "Object 1",
+            table_obj2: "Object 2",
+            table_obj3: "Object 3",
+            attr_door: "Door Type (DoorType)",
+            attr_pos: "Position (Pos)",
+            attr_dir: "Open Direction (OpenDir)",
+            attr_mode: "Interaction Mode (Mode)",
+            attr_height: "SMPL Height (Height)",
+            parser_placeholder: "Paste sequence code here...",
+            copy_title: "Copy Code",
+            door_options: { 'hm': 'Hippo Mouth (hm)', 'nm': 'Normal Mouth (nm)', 'bh': 'Bar Horizontal (bh)', 'bv': 'Bar Vertical (bv)', 'dl': 'Double-door Left (dl)', 'dr': 'Double-door Right (dr)', 'dlb': 'Double-door Both (dlb)' },
+            dir_options: { 'f': 'Front (f)', 'u': 'Up (u)', 'l': 'Left (l)', 'r': 'Right (r)' },
+            mode_options: { 'M0': 'Left-Right-Left (M0)', 'M1': 'Right-Left-Right (M1)', 'M2': 'Both+Single (M2)' },
+            height_options: { 'H0': 'Ground Level (H0)', 'H2': 'Chest Level (H2)' },
+            errors: {
+                ERR_DOOR_UNIQUE: "Error: Door types must be unique.",
+                ERR_BOUNDS: (ctx) => `Error: Object ${ctx.id}'s type ${ctx.door} is out of bounds.`,
+                ERR_COLLISION: "Error: Object positions overlap/conflict.",
+                ERR_DLB_MODE: "Error: dlb type selected, interaction mode must be M2.",
+                ERR_PARSE_FORMAT: "Error: Invalid code format.",
+                ERR_PARSE_BLOCK: (ctx) => `Error: Object block "${ctx.block}" has invalid format.`,
+                ERR_PARSE_COMPONENT: (ctx) => `Error: Object block "${ctx.block}" contains unknown components.`,
+                ERR_PARSE_INTERACT_FORMAT: (ctx) => `Error: Interaction block "${ctx.block}" has invalid format.`,
+                ERR_PARSE_INTERACT_COMPONENT: (ctx) => `Error: Interaction block "${ctx.block}" contains unknown components.`
+            }
+        }
+    };
+    let currentLang = 'zh';
+
+    function updateLanguage(lang) {
+        currentLang = lang;
+        document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+        
+        document.querySelectorAll('[data-lang-key]').forEach(el => {
+            const key = el.getAttribute('data-lang-key');
+            el.textContent = LANG_PACK[lang][key];
+        });
+
+        document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-lang-placeholder');
+            el.placeholder = LANG_PACK[lang][key];
+        });
+
+        document.querySelectorAll('[data-lang-title]').forEach(el => {
+            const key = el.getAttribute('data-lang-title');
+            el.title = LANG_PACK[lang][key];
+        });
+
+        // 更新下拉菜单
+        for (let i = 1; i <= 3; i++) {
+            populateSelect(`door${i}`, LANG_PACK[lang].door_options, document.getElementById(`door${i}`).value);
+            populateSelect(`dir${i}`, LANG_PACK[lang].dir_options, document.getElementById(`dir${i}`).value);
+        }
+        populateSelect('mode', LANG_PACK[lang].mode_options, document.getElementById('mode').value);
+        populateSelect('height', LANG_PACK[lang].height_options, document.getElementById('height').value);
+
+        // 更新激活状态
+        document.getElementById('lang-zh').classList.toggle('active', lang === 'zh');
+        document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+
+        // 重新校验以更新错误信息语言
+        updateUIAndValidation();
+    }
+
     // --- 数据定义 ---
     const ALL_POSITIONS = Array.from({length: 3}, (_, z) => Array.from({length: 3}, (_, x) => `${x}${z}`)).flat();
-    const DOOR_TYPES = {
-        'hm': '河马口 (hm)', 'nm': '普通口 (nm)', 'bh': '长条口-横 (bh)',
-        'bv': '长条口-竖 (bv)', 'dl': '双开左 (dl)', 'dr': '双开右 (dr)',
-        'dlb': '双开全 (dlb)'
-    };
-    const OPEN_DIRS = {'f': '前 (f)', 'u': '上 (u)', 'l': '左 (l)', 'r': '右 (r)'};
-    const MODES = {'M0': '左-右-左 (M0)', 'M1': '右-左-右 (M1)', 'M2': '双手+单手 (M2)'};
-    const HEIGHTS = {'H0': '地面高度 (H0)', 'H2': '胸部高度 (H2)'};
+    const DOOR_TYPES = LANG_PACK[currentLang].door_options;
+    const OPEN_DIRS = LANG_PACK[currentLang].dir_options;
+    const MODES = LANG_PACK[currentLang].mode_options;
+    const HEIGHTS = LANG_PACK[currentLang].height_options;
 
     // --- 页面初始化 ---
     function populateSelect(selectId, options, defaultKey) {
         const select = document.getElementById(selectId);
+        const currentValue = select.value; // 保存当前值
         select.innerHTML = '';
         for (const key in options) {
             const option = new Option(options[key], key);
             select.add(option);
         }
-        if (defaultKey) select.value = defaultKey;
+        // 尝试恢复之前的值，如果不存在则使用默认值
+        if (Array.from(select.options).some(opt => opt.value === currentValue)) {
+            select.value = currentValue;
+        } else if (defaultKey) {
+            select.value = defaultKey;
+        }
     }
 
     function initialize() {
@@ -279,6 +427,10 @@
         
         populateSelect('mode', MODES, 'M0');
         populateSelect('height', HEIGHTS, 'H0');
+
+        // 语言切换事件
+        document.getElementById('lang-zh').addEventListener('click', () => updateLanguage('zh'));
+        document.getElementById('lang-en').addEventListener('click', () => updateLanguage('en'));
     }
 
     // --- 核心校验与UI更新逻辑 ---
@@ -304,9 +456,7 @@
     }
 
     function updateUIAndValidation() {
-        errorMessage.textContent = '';
-        let isConfigurationValid = true;
-
+        const errors = new Set();
         const state = [];
         for (let i = 1; i <= 3; i++) {
             state.push({
@@ -320,6 +470,26 @@
         const isM2Selected = currentMode === 'M2';
         const isDlbSelectedByAny = state.some(s => s.door === 'dlb');
 
+        const allDoors = state.map(s => s.door);
+        if (new Set(allDoors).size < 3) {
+            errors.add({ key: 'ERR_DOOR_UNIQUE' });
+        }
+
+        const allFootprints = [];
+        for (const obj of state) {
+            if (!checkBounds(obj.pos, obj.door)) {
+                errors.add({ key: 'ERR_BOUNDS', ctx: { id: obj.id, door: obj.door } });
+            }
+            allFootprints.push(...getFootprint(obj.pos, obj.door));
+        }
+        if (new Set(allFootprints).size !== allFootprints.length) {
+            errors.add({ key: 'ERR_COLLISION' });
+        }
+
+        if (isDlbSelectedByAny && !isM2Selected) {
+            errors.add({ key: 'ERR_DLB_MODE' });
+        }
+
         for (let i = 0; i < 3; i++) {
             const self = state[i];
             const others = state.filter(s => s.id !== self.id);
@@ -329,9 +499,7 @@
             const doorSelect = document.getElementById(`door${i + 1}`);
             Array.from(doorSelect.options).forEach(opt => {
                 let isDisabled = otherDoors.includes(opt.value);
-                if (opt.value === 'dlb' && !isM2Selected) {
-                    isDisabled = true;
-                }
+                if (opt.value === 'dlb' && !isM2Selected) isDisabled = true;
                 opt.disabled = isDisabled;
             });
 
@@ -347,14 +515,17 @@
             const dirSelect = document.getElementById(`dir${i + 1}`);
             Array.from(dirSelect.options).forEach(opt => {
                 const dir = opt.value;
-                const x = parseInt(self.pos[0]);
-                const z = parseInt(self.pos[1]);
-                let targetPos = '';
-                if (dir === 'u') targetPos = `${x}${z + 1}`;
-                else if (dir === 'l') targetPos = `${x - 1}${z}`;
-                else if (dir === 'r') targetPos = `${x + 1}${z}`;
+                const selfFootprint = getFootprint(self.pos, self.door);
+                const targetCells = selfFootprint.map(cell => {
+                    const x = parseInt(cell[0]);
+                    const z = parseInt(cell[1]);
+                    if (dir === 'u') return `${x}${z + 1}`;
+                    if (dir === 'l') return `${x - 1}${z}`;
+                    if (dir === 'r') return `${x + 1}${z}`;
+                    return null;
+                }).filter(Boolean);
                 
-                const isBlockedByOther = targetPos && otherFootprints.includes(targetPos);
+                const isBlockedByOther = targetCells.some(cell => otherFootprints.includes(cell));
                 const isInvalidForDoubleDoor = (['dl', 'dr', 'dlb'].includes(self.door)) && (dir === 'l' || dir === 'r');
                 const isInvalidForBarHorizontal = (self.door === 'bh') && (dir === 'l' || dir === 'r');
                 const isInvalidForBarVertical = (self.door === 'bv') && (dir === 'u');
@@ -368,21 +539,13 @@
             opt.disabled = isDlbSelectedByAny && opt.value !== 'M2';
         });
 
-        for (let i = 1; i <= 3; i++) {
-            if (document.getElementById(`door${i}`).selectedOptions[0].disabled ||
-                document.getElementById(`pos${i}`).selectedOptions[0].disabled ||
-                document.getElementById(`dir${i}`).selectedOptions[0].disabled) {
-                isConfigurationValid = false;
-                errorMessage.textContent = '当前配置无效，请调整选项。';
-            }
-        }
-        if (document.getElementById('mode').selectedOptions[0].disabled) {
-            isConfigurationValid = false;
-            errorMessage.textContent = '当前配置无效，请调整选项。';
-        }
-
+        errorMessage.innerHTML = Array.from(errors).map(err => {
+            const template = LANG_PACK[currentLang].errors[err.key];
+            return typeof template === 'function' ? template(err.ctx) : template;
+        }).join('<br>');
+        
         updateVisualization();
-        generateCode(isConfigurationValid);
+        generateCode(errors.size === 0);
     }
 
     // --- 编码生成 ---
@@ -409,13 +572,87 @@
         resultCodeEl.textContent = finalCode;
     }
 
+    // --- 编码解析 ---
+    const parseBtn = document.getElementById('parse-btn');
+    const parseInput = document.getElementById('parse-input');
+    parseBtn.addEventListener('click', () => {
+        const code = parseInput.value.trim();
+        const errors = new Set();
+        const errorTemplates = LANG_PACK[currentLang].errors;
+
+        const parts = code.split('_');
+        if (parts.length !== 5 || parts[0] !== 'L') {
+            errors.add({ key: 'ERR_PARSE_FORMAT' });
+            errorMessage.innerHTML = errorTemplates.ERR_PARSE_FORMAT;
+            return;
+        }
+
+        const objectBlocks = parts.slice(1, 4);
+        const interactionBlock = parts[4];
+        const parsedObjects = [];
+
+        const objRegex = /^([a-z]{2,3})(\d{2})([a-z])$/;
+        for (const block of objectBlocks) {
+            const match = block.match(objRegex);
+            if (!match) {
+                errors.add({ key: 'ERR_PARSE_BLOCK', ctx: { block } });
+                continue;
+            }
+            const [, door, pos, dir] = match;
+            if (!DOOR_TYPES[door] || !ALL_POSITIONS.includes(pos) || !OPEN_DIRS[dir]) {
+                errors.add({ key: 'ERR_PARSE_COMPONENT', ctx: { block } });
+                continue;
+            }
+            parsedObjects.push({ door, pos, dir });
+        }
+
+        const interactionRegex = /^(M\d)(H\d)$/;
+        const interactionMatch = interactionBlock.match(interactionRegex);
+        if (!interactionMatch) {
+            errors.add({ key: 'ERR_PARSE_INTERACT_FORMAT', ctx: { block: interactionBlock } });
+        } else {
+            const [, mode, height] = interactionMatch;
+            if (!MODES[mode] || !HEIGHTS[height]) {
+                errors.add({ key: 'ERR_PARSE_INTERACT_COMPONENT', ctx: { block: interactionBlock } });
+            }
+        }
+
+        if (errors.size > 0) {
+            errorMessage.innerHTML = Array.from(errors).map(err => {
+                const template = errorTemplates[err.key];
+                return typeof template === 'function' ? template(err.ctx) : template;
+            }).join('<br>');
+            return;
+        }
+
+        for (let i = 0; i < 3; i++) {
+            document.getElementById(`door${i + 1}`).value = parsedObjects[i].door;
+            document.getElementById(`pos${i + 1}`).value = parsedObjects[i].pos;
+            document.getElementById(`dir${i + 1}`).value = parsedObjects[i].dir;
+        }
+        const [, mode, height] = interactionMatch;
+        document.getElementById('mode').value = mode;
+        document.getElementById('height').value = height;
+
+        updateUIAndValidation();
+    });
+
     // --- 复制按钮逻辑 ---
     const copyBtn = document.getElementById('copyBtn');
+    const copyIcon = document.getElementById('copy-icon');
+    const checkIcon = document.getElementById('check-icon');
     copyBtn.addEventListener('click', () => {
         const textToCopy = resultCodeEl.textContent;
         if (textToCopy === '---') return;
         navigator.clipboard.writeText(textToCopy).then(() => {
-            // ... (复制反馈逻辑不变)
+            copyIcon.style.display = 'none';
+            checkIcon.style.display = 'inline-block';
+            copyBtn.classList.add('copied');
+            setTimeout(() => {
+                copyIcon.style.display = 'inline-block';
+                checkIcon.style.display = 'none';
+                copyBtn.classList.remove('copied');
+            }, 1500);
         });
     });
 
@@ -505,20 +742,19 @@
             mesh.position.set(posX, posY, 0);
             gridGroup.add(mesh);
 
-            // 为 dl/dr 单独添加蓝色半面，覆盖掉整面红色
             if (['dl', 'dr'].includes(obj.door)) {
                 if (obj.dir === 'f') {
                     const halfDoorGeo = new THREE.PlaneGeometry(CUBE_SIZE, CUBE_SIZE);
-                    const halfDoorMesh = new THREE.Mesh(halfDoorGeo, baseMaterial); // 先用蓝色覆盖
+                    const halfDoorMesh = new THREE.Mesh(halfDoorGeo, baseMaterial);
                     halfDoorMesh.position.z = CUBE_SIZE / 2 + 0.001;
-                    halfDoorMesh.position.x = (obj.door === 'dl') ? CUBE_SIZE / 2 : -CUBE_SIZE / 2; // 覆盖另一半
+                    halfDoorMesh.position.x = (obj.door === 'dl') ? CUBE_SIZE / 2 : -CUBE_SIZE / 2;
                     mesh.add(halfDoorMesh);
                 } else if (obj.dir === 'u') {
                     const halfDoorGeo = new THREE.PlaneGeometry(CUBE_SIZE, CUBE_SIZE);
-                    const halfDoorMesh = new THREE.Mesh(halfDoorGeo, baseMaterial); // 先用蓝色覆盖
+                    const halfDoorMesh = new THREE.Mesh(halfDoorGeo, baseMaterial);
                     halfDoorMesh.rotation.x = -Math.PI / 2;
                     halfDoorMesh.position.y = CUBE_SIZE / 2 + 0.001;
-                    halfDoorMesh.position.x = (obj.door === 'dl') ? CUBE_SIZE / 2 : -CUBE_SIZE / 2; // 覆盖另一半
+                    halfDoorMesh.position.x = (obj.door === 'dl') ? CUBE_SIZE / 2 : -CUBE_SIZE / 2;
                     mesh.add(halfDoorMesh);
                 }
             }
